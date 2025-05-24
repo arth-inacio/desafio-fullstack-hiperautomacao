@@ -78,7 +78,7 @@ class Transparencia:
         await self.page.click("#btnDetalharBpc", timeout=5000)
 
 async def main() -> None:
-    transparencia = Transparencia(dcto="427.548.568-89")
+    transparencia = Transparencia(dcto="")
     await transparencia.playwright_start()
     try:
         await transparencia._coleta_gastos()
