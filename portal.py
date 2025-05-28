@@ -55,11 +55,11 @@ class Transparencia:
     async def _coleta_cabecalho(self, html: str) -> list[dict]:
         dados = []
         soup = BeautifulSoup(html, "html.parser")
-       
         tabela_informacoes = soup.find("section", {"class": "dados-tabelados"}).find("div", {"class": "row"})
         dados_pessoais = await self._coleta_dados_pessoais(tabela_informacoes)
 
         tabelas_recebimento = soup.find_all("div", {"class": "br-table"})
+        index=1
         for tabela in tabelas_recebimento:
             beneficio = re.search(r"responsive\">.*?strong>(.*?)<", str(tabela), re.S).group(1)
             linhas_info = tabela.find_all("div")
@@ -67,18 +67,49 @@ class Transparencia:
                 td = linha.find_all("td")
                 if not td:
                     continue
-                valor_recebido = td[3].text.replace("R$", "").strip()
-        
+                
                 dado = {
                     "nome": dados_pessoais["nome"],
                     "documento": dados_pessoais["documento"],
                     "localidade": dados_pessoais["localidade"],
                     "beneficio": beneficio,
-                    "total_recebido": valor_recebido,
+                    "total_recebido": td[3].text.replace("R$", "").strip(),
                 }
+                
+                await self.page.click(f"//html/body/main/div/div[2]/div[2]/div/div[2]/div/div/div/div/table/tbody/tr/td[{index}]/a", timeout=2500)
+                try:
+                    await self.page.wait_for_selector("#tabelaDetalheDisponibilizado")
+                except TimeoutError:
+                    dado["parcelas"] = []
+                    dados.append(dado)
+                    continue
+
+                html = await self.page.content()
+                dado["parcelas"] = await self._coleta_parcelas(html)
                 dados.append(dado)
-        print(dados)
+            index+=1
         return dados
+
+    async def _coleta_parcelas(self, html: str) -> list:
+        recursos = []
+        html = await self.page.content()
+        soup = BeautifulSoup(html, "html.parser")
+        tabela_recursos = soup.find("table", {"id": "tabelaDetalheDisponibilizado"}).find("tbody")
+        linhas = tabela_recursos.find_all("tr")
+        for linha in linhas:
+            td = linha.find_all("td")
+
+            recurso = {
+                "mes": td[0].text,
+                "parcela": td[1].text,
+                "uf": td[2].text,
+                "municipio": td[3].text,
+                "enquadramento": td[4].text, 
+                "valor": td[5].text,
+                "observacao": td[6].text,
+            }
+            recursos.append(recurso)
+        return recursos
 
     async def _aceita_cookies(self) -> None:
         try:
@@ -88,7 +119,7 @@ class Transparencia:
         except TimeoutError:
             pass
 
-    async def _login_sistema(self) -> str:
+    async def _login_sistema(self) -> tuple:
         for _ in range(4):
             # Acesso à página principal
             await self.page.goto("https://portaldatransparencia.gov.br/pessoa/visao-geral", timeout=5000)
@@ -124,9 +155,9 @@ class Transparencia:
 
                 # Abre listagem de recebimento de recursos
                 await self.page.locator("button[aria-controls=\"accordion-recebimentos-recursos\"]").click(timeout=2000)
+                await self.page.wait_for_load_state("load")
             except TimeoutError:
                 print(f" ======== [{_+1}] Tentativa ======== ")
-                await self.page.reload()
                 continue
             break
         
@@ -136,18 +167,18 @@ class Transparencia:
 
         # Aciono a função de coleta do cabeçalho
         html = await self.page.content()
-        return html
+        return html, base64
 
-    async def _coleta_gastos(self) -> None:
-        html = await self._login_sistema()
+    async def _coleta_dados(self) -> tuple:
+        html, encodado = await self._login_sistema()
         cabecalho = await self._coleta_cabecalho(html)
-        return cabecalho
+        return cabecalho, encodado
 
 async def main() -> None:
     transparencia = Transparencia(dcto="")
     await transparencia.playwright_start()
     try:
-        await transparencia._coleta_gastos()
+        await transparencia._coleta_dados()
     except TimeoutError:
         raise TimeoutError("Não foi possivel fazer a coleta dos dados no momento, tente novamente mais tarde!")
     await transparencia.playwright_finish()
