@@ -1,4 +1,5 @@
 from base64 import b64encode
+import json
 import re
 import asyncio
 from pathlib import Path
@@ -25,7 +26,7 @@ class Transparencia:
     async def playwright_start(self) -> None:
         # Método que Inicializa o playwright
         self.playwright = await async_playwright().start()
-        self.browser = await self.playwright.chromium.launch(headless=False)
+        self.browser = await self.playwright.firefox.launch(headless=False)
         self.context = await self.browser.new_context()
         self.page = await self.context.new_page()
         self.page.set_default_timeout(40000)
@@ -76,6 +77,9 @@ class Transparencia:
                     "total_recebido": td[3].text.replace("R$", "").strip(),
                 }
                 
+                """
+                Aqui é necessário utilizar algum serviço de captcha bypass
+                
                 await self.page.click(f"//html/body/main/div/div[2]/div[2]/div/div[2]/div/div/div/div/table/tbody/tr/td[{index}]/a", timeout=2500)
                 try:
                     await self.page.wait_for_selector("#tabelaDetalheDisponibilizado")
@@ -86,6 +90,7 @@ class Transparencia:
 
                 html = await self.page.content()
                 dado["parcelas"] = await self._coleta_parcelas(html)
+                """
                 dados.append(dado)
             index+=1
         return dados
@@ -178,7 +183,17 @@ async def main() -> None:
     transparencia = Transparencia(dcto="")
     await transparencia.playwright_start()
     try:
-        await transparencia._coleta_dados()
+        dados, imagem_base64 = await transparencia._coleta_dados()
+        resultado = {
+            "dados": dados,
+            "imagem_base64": imagem_base64
+        }
+        
+        # Salvando o JSON em um arquivo
+        json_path = transparencia.path / "resultado.json"
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(resultado, f, indent=4, ensure_ascii=False)
+
     except TimeoutError:
         raise TimeoutError("Não foi possivel fazer a coleta dos dados no momento, tente novamente mais tarde!")
     await transparencia.playwright_finish()
