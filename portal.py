@@ -26,7 +26,7 @@ class Transparencia:
     async def playwright_start(self) -> None:
         # Método que Inicializa o playwright
         self.playwright = await async_playwright().start()
-        self.browser = await self.playwright.firefox.launch(headless=False)
+        self.browser = await self.playwright.firefox.launch(headless=True)
         self.context = await self.browser.new_context()
         self.page = await self.context.new_page()
         self.page.set_default_timeout(40000)
@@ -159,6 +159,7 @@ class Transparencia:
                 await self._aceita_cookies()
 
                 # Abre listagem de recebimento de recursos
+                await self.page.wait_for_selector("button[aria-controls=\"accordion-recebimentos-recursos\"]")
                 await self.page.locator("button[aria-controls=\"accordion-recebimentos-recursos\"]").click(timeout=2000)
                 await self.page.wait_for_load_state("load")
             except TimeoutError:
@@ -179,8 +180,8 @@ class Transparencia:
         cabecalho = await self._coleta_cabecalho(html)
         return cabecalho, encodado
 
-async def main() -> None:
-    transparencia = Transparencia(dcto="")
+async def main(dcto: str) -> dict:
+    transparencia = Transparencia(dcto=dcto)
     await transparencia.playwright_start()
     try:
         dados, imagem_base64 = await transparencia._coleta_dados()
@@ -188,16 +189,23 @@ async def main() -> None:
             "dados": dados,
             "imagem_base64": imagem_base64
         }
-        
-        # Salvando o JSON em um arquivo
+
+        # Salvando o JSON em disco, se necessário
         json_path = transparencia.path / "resultado.json"
         with open(json_path, "w", encoding="utf-8") as f:
             json.dump(resultado, f, indent=4, ensure_ascii=False)
-
+        return resultado
+   
     except TimeoutError:
-        raise TimeoutError("Não foi possivel fazer a coleta dos dados no momento, tente novamente mais tarde!")
-    await transparencia.playwright_finish()
-    print( "============= Coleta de dados processada com sucesso! =============")
+        raise TimeoutError("Não foi possível fazer a coleta dos dados no momento, tente novamente mais tarde!")
+    finally:
+       await transparencia.playwright_finish()
 
+# Executa somente se rodar direto: python portal.py
 if __name__ == "__main__":
-    asyncio.run(main())
+    import sys
+    dcto = input("Digite o documento (CPF/CNPJ): ")
+    if len(sys.argv) > 1:
+        dcto = sys.argv[1]
+
+    asyncio.run(main(dcto))
