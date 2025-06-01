@@ -14,7 +14,11 @@ async def get_beneficios(dcto: str):
     transparencia = Transparencia(dcto)
     await transparencia.playwright_start()
     try:
-        dados, imagem_base64 = await transparencia._coleta_dados()
+        for _ in range(5):
+            dados, imagem_base64 = await transparencia._coleta_dados()
+            if dados == []:
+                continue
+            break
         return {"dados": dados, "imagem_base64": imagem_base64}
     except TimeoutError:
         raise TimeoutError("Não foi possível acessar a página no momento! tente novamente mais tarde!")

@@ -125,6 +125,7 @@ class Transparencia:
             pass
 
     async def _login_sistema(self) -> tuple:
+
         for _ in range(4):
             # Acesso à página principal
             await self.page.goto("https://portaldatransparencia.gov.br/pessoa/visao-geral", timeout=5000)
@@ -163,7 +164,7 @@ class Transparencia:
                 await self.page.locator("button[aria-controls=\"accordion-recebimentos-recursos\"]").click(timeout=2000)
                 await self.page.wait_for_load_state("load")
             except TimeoutError:
-                print(f" ======== [{_+1}] Tentativa ======== ")
+                print(f"[ {_+1}ª - Tentativa ]")
                 continue
             break
         
