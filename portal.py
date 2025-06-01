@@ -23,6 +23,12 @@ class Transparencia:
         path.mkdir(parents=True, exist_ok=True)
         self.path = path
     
+    def __del__(self) -> None:
+        if self.path.exists():
+            for file in self.path.iterdir():
+                file.unlink()
+            self.path.rmdir()
+
     async def playwright_start(self) -> None:
         # Método que Inicializa o playwright
         self.playwright = await async_playwright().start()
