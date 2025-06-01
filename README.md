@@ -1,118 +1,80 @@
-<h1>📊 Transparência - Coletor de Dados do Portal da Transparência</h1>
-<h2> Desafio Full Stack com Hiperautomação</h2>
-<p>
-  <b>Desafio completo<b>:  
-  https://github.com/mostqi/desafios-fullstack-python/tree/main/desafio-01
-</p>
+<h1>🧾 Desafio Full Stack – Hiperautomação</h1>
 
-<p>
-  Este projeto automatiza a coleta de dados de beneficiários no 
-  <a href="https://portaldatransparencia.gov.br/" target="_blank">Portal da Transparência do Governo Federal</a> 
-  utilizando a biblioteca <a href="https://playwright.dev/python/" target="_blank">Playwright</a>, 
-  extraindo informações de benefícios recebidos com suporte à exportação em formato JSON, 
-  incluindo imagem da página em Base64.
-</p>
+  <p>
+    Este projeto automatiza a coleta de dados de beneficiários no
+    <a href="https://portaldatransparencia.gov.br" target="_blank">Portal da Transparência do Governo Federal</a>,
+    utilizando a biblioteca <a href="https://playwright.dev/python/" target="_blank">Playwright</a>.
+    A aplicação expõe uma API REST construída com <a href="https://fastapi.tiangolo.com/" target="_blank">FastAPI</a>,
+    permitindo consultas por CPF ou CNPJ e retornando informações detalhadas sobre os benefícios recebidos,
+    juntamente com uma captura de tela da página em formato Base64.
+  </p>
 
-<hr>
+  <h2>🚀 Tecnologias Utilizadas</h2>
+  <ul>
+    <li>Python 3.11+</li>
+    <li>FastAPI</li>
+    <li>Playwright (Firefox)</li>
+    <li>BeautifulSoup4</li>
+    <li>Uvicorn</li>
+  </ul>
 
-<h2>🚀 Funcionalidades</h2>
-<ul>
-  <li>Acesso automático ao Portal da Transparência</li>
-  <li>Consulta por <strong>CPF</strong> ou <strong>CNPJ</strong></li>
-  <li>Extração de dados pessoais e benefícios recebidos</li>
-  <li>Captura de tela da página em <strong>Base64</strong></li>
-  <li>Geração de JSON contendo:
-    <ul>
-      <li>Dados do beneficiário</li>
-      <li>Benefícios recebidos</li>
-      <li>Screenshot da página</li>
-    </ul>
-  </li>
-</ul>
+  <h2>⚙️ Instalação e Execução</h2>
+  <h3>1. Clone o Repositório</h3>
+  <pre><code>git clone https://github.com/arth-inacio/desafio-fullstack-hiperautomacao.git
+cd desafio-fullstack-hiperautomacao</code></pre>
 
-<hr>
+  <h3>2. Crie e Ative um Ambiente Virtual</h3>
+  <pre><code>python -m venv venv
+source venv/bin/activate  # No Windows: venv\Scripts\activate</code></pre>
 
-<h2>📦 Estrutura do JSON gerado</h2>
-<pre><code>{
-  "dados": [
-    {
-      "nome": "João da Silva",
-      "documento": "12345678900",
-      "localidade": "São Paulo/SP",
-      "beneficio": "Auxílio Emergencial",
-      "total_recebido": "1.200,00"
-    }
-  ],
-  "imagem_base64": "iVBORw0KGgoAAAANSUhEUgAA..."
-}
-</code></pre>
+  <h3>3. Instale as Dependências</h3>
+  <pre><code>pip install -r requirements.txt</code></pre>
 
-<hr>
+  <h3>4. Instale os Navegadores do Playwright</h3>
+  <pre><code>playwright install</code></pre>
 
-<h2>🧰 Tecnologias Utilizadas</h2>
-<ul>
-  <li>Python 3.10+</li>
-  <li><a href="https://playwright.dev/python/">Playwright</a></li>
-  <li>BeautifulSoup</li>
-  <li>AsyncIO</li>
-  <li>Regex</li>
-  <li>Base64</li>
-</ul>
+  <h3>5. Inicie a Aplicação</h3>
+  <pre><code>python start.py</code></pre>
+  <p><strong>Nota:</strong> O arquivo <code>start.py</code> foi atualizado para desabilitar o modo <code>reload</code>, evitando conflitos com o Playwright no Windows.</p>
 
-<hr>
+  <h2>📡 Endpoint da API</h2>
+  <ul>
+    <li><strong>GET</strong> <code>/api/beneficios?documento=CPF_OU_CNPJ</code></li>
+    <li><strong>Parâmetro:</strong> <code>documento</code> (string) – CPF ou CNPJ do beneficiário.</li>
+    <li><strong>Resposta:</strong>
+      <ul>
+        <li><code>dados</code>: Lista de benefícios recebidos</li>
+        <li><code>imagem_base64</code>: Captura de tela da página em Base64</li>
+      </ul>
+    </li>
+  </ul>
 
-<h2>📁 Estrutura do Projeto</h2>
-<pre><code>.
-├── temp/
-│   └── {CPF_CNPJ}/
-│       ├── screenshot.png
-│       └── resultado.json
-├── transparencia.py
-├── README.html
-├── requirements.txt
-└── .gitignore
-</code></pre>
+  <h2>🛠️ Estrutura do Projeto</h2>
+  <pre><code>├── main.py           # Define os endpoints da API
+├── portal.py         # Lógica de automação e scraping
+├── start.py          # Inicializa o servidor Uvicorn
+├── requirements.txt  # Lista de dependências
+├── temp/             # Armazena capturas de tela e JSONs gerados</code></pre>
 
-<hr>
+  <h2>🧪 Exemplo de Uso</h2>
+  <pre><code>curl "http://localhost:8000/api/beneficios?documento=12345678900"</code></pre>
+  <p>A resposta incluirá os dados dos benefícios e uma imagem da página em formato Base64.</p>
 
-<h2>⚙️ Como Usar</h2>
+  <h2>⚠️ Observações</h2>
+  <ul>
+    <li>Certifique-se de que o Playwright está corretamente instalado e configurado.</li>
+    <li>O projeto foi testado no Windows 10 com Python 3.11.</li>
+    <li>Em caso de erros relacionados ao Playwright, verifique se os navegadores estão instalados e se o modo <code>reload</code> está desativado.</li>
+  </ul>
 
-<h3>1. Instale as dependências:</h3>
-<pre><code>pip install -r requirements.txt
-playwright install</code></pre>
-<p><em>Nota: A instalação do Playwright pode exigir o download de navegadores.</em></p>
+  <h2>📄 Licença</h2>
+  <p>Este projeto está licenciado sob a <a href="LICENSE">MIT License</a>.</p>
 
-<h3>2. Execute o script:</h3>
-<pre><code>python transparencia.py</code></pre>
+  <hr>
 
-<h3>3. Personalize a consulta</h3>
-<p>Altere o CPF ou CNPJ desejado dentro do código <code>transparencia.py</code>:</p>
-
-<pre><code>transparencia = Transparencia(dcto="")</code></pre>
-
-<hr>
-
-<h2>📄 requirements.txt</h2>
-<pre><code>playwright
-beautifulsoup4
-</code></pre>
-
-<hr>
-
-<h2>📄 .gitignore</h2>
-<pre><code># Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-</pre></code>
-<hr>
-
-<h2>🔐 Avisos Legais</h2>
-<ul>
-  <li>Este projeto é <strong>educacional</strong> e não deve ser usado para coletas em massa.</li>
-  <li>O uso excessivo pode violar os <strong>termos de uso do site público</strong>.</li>
-  <li>É responsabilidade do usuário respeitar os limites éticos e legais.</li>
-</ul>
+  <p>Repositório oficial: <a href="https://github.com/arth-inacio/desafio-fullstack-hiperautomacao" target="_blank">
+    github.com/arth-inacio/desafio-fullstack-hiperautomacao</a>
+  </p>
 
 <hr>
 
